@@ -15,7 +15,7 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if let defaultsArr = defaults.array(forKey: "TodolistArray") as? [String]{
+        if let defaultsArr = UserDefaults.standard.array(forKey: "TodolistArray") as? [String]{
             arr = defaultsArr
         }
         // Do any additional setup after loading the view.
