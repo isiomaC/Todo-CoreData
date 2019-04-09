@@ -12,18 +12,14 @@ class TodoListViewController: UITableViewController {
 
     var itemArray = [Item]()
     let defaults = UserDefaults.standard
-    
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("items.plist")
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let item1 = Item(title: "Go to Shop", done: false)
-        let item2 = Item(title: "Buy Bread", done: false)
-        let item3 = Item(title: "Buy Coffee", done: false)
-        itemArray = [item1, item2, item3]
-        
-        if let defaultsArr = UserDefaults.standard.array(forKey: "TodolistArray") as? [Item]{
-            itemArray = defaultsArr
-        }
+        print(dataFilePath!)
+
+        loadItems()
         
     }
     
@@ -50,20 +46,12 @@ class TodoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        
         tableView.deselectRow(at: indexPath, animated: true)
-    
-        tableView.reloadData()
         
-        //MARK- Code works but the cells with checkmarks are reused... below
-//        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark{
-//            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-//        }else{
-//            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-//        }
+        saveItems()
+    
     }
-        
-    
-
     
     //MARK- Add New Items
     @IBAction func AddNewTodo(_ sender: UIBarButtonItem) {
@@ -71,11 +59,11 @@ class TodoListViewController: UITableViewController {
         let alert = UIAlertController(title: "Add new Todo", message: "", preferredStyle: .alert)
         
         let alertAction = UIAlertAction(title: "Add Item", style: .default) { (action) in
-            //when user clicks add item button
+            //when user clicks add item button on the alert controller
             let item = Item(title: textfield.text!, done: false)
             self.itemArray.append(item)
-            self.defaults.set(self.itemArray, forKey: "TodolistArray")
-            self.tableView.reloadData()
+            
+            self.saveItems()
         }
         
         alert.addTextField { (alertTextField) in
@@ -85,6 +73,30 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(alertAction)
         present(alert, animated: true, completion: nil)
+    }
+    
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        
+        do{
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }catch{
+            print(error)
+        }
+        //            self.defaults.set(self.itemArray, forKey: "TodolistArray")
+        tableView.reloadData()
+    }
+    
+    func loadItems(){
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do{
+                itemArray = try decoder.decode([Item].self, from: data)
+            }catch{
+                print(error)
+            }
+        }
     }
 }
 
