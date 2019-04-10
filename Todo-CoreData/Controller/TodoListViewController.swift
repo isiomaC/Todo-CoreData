@@ -31,7 +31,7 @@ class TodoListViewController: UITableViewController {
 
     }
     
-    //MARK - Rable view datasource methods
+    //MARK - Table view datasource methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
@@ -50,16 +50,7 @@ class TodoListViewController: UITableViewController {
         
     }
     
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        if editingStyle == .delete{
-//            //Deleting from coredata
-//            context.delete(itemArray[indexPath.row])
-//            itemArray.remove(at: indexPath.row)
-//            tableView.deleteRows(at: [indexPath], with: .fade)
-//            saveItems()
-//        }
-//    }
-    
+    //MARK - Table View Delegate Methods
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
         let delete = UITableViewRowAction(style: .destructive, title: "Delete") { (action, indexPath) in
@@ -71,15 +62,30 @@ class TodoListViewController: UITableViewController {
             self.saveItems()
         }
         
-//        let edit = UITableViewRowAction(style: .default, title: "Edit") { (action, indexPath) in
-//
-//
-//            self.itemArray[indexPath.row].setValue("This is not meant to be working", forKey: "title")
-////            self.saveItems()
-//            self.tableView.reloadData()
-//        }
+        let edit = UITableViewRowAction(style: .default, title: "Rename") { (action, indexPath) in
+            
+            var textfield = UITextField()
+            let rename = UIAlertController(title: "Rename TODO Item", message: "", preferredStyle: .alert)
+            
+            let renameAction = UIAlertAction(title: "Save", style: .default, handler: { (action) in
+                
+                self.itemArray[indexPath.row].setValue(textfield.text, forKey: "title")
+                self.saveItems()
+            })
+            
+            rename.addTextField(configurationHandler: { (field) in
+                field.placeholder = "Rename Item"
+                textfield = field
+            })
+            
+            rename.addAction(renameAction)
+            self.present(rename, animated: true, completion: nil)
 
-        return [delete]
+        }
+        
+        edit.backgroundColor = .lightGray
+
+        return [delete, edit]
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -89,10 +95,10 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         
         saveItems()
-    
+        
     }
     
-    //MARK- Add New Items
+    //MARK - Add New Items
     @IBAction func AddNewTodo(_ sender: UIBarButtonItem) {
         var textfield = UITextField()
         let alert = UIAlertController(title: "Add new Todo", message: "", preferredStyle: .alert)
@@ -154,7 +160,6 @@ class TodoListViewController: UITableViewController {
 //Mark - Search Bar methods
 extension TodoListViewController: UISearchBarDelegate{
     
-    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text!.count == 0{
             loadItems()
@@ -162,6 +167,7 @@ extension TodoListViewController: UISearchBarDelegate{
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()
             }
+            
         }else{
              let request: NSFetchRequest<Item> = Item.fetchRequest()
         
