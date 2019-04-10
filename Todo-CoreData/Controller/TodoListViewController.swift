@@ -24,7 +24,7 @@ class TodoListViewController: UITableViewController {
         print(dataFilePath)
 
         loadItems()
-        
+        loadItems()
     }
     
     //MARK - Rable view datasource methods
