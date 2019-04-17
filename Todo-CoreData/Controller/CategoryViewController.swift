@@ -9,8 +9,9 @@
 import UIKit
 import CoreData
 import RealmSwift
+import SwipeCellKit
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: UITableViewController{
 
     let realm = try! Realm()
     var categories : Results<TodoCategory>?
@@ -18,6 +19,7 @@ class CategoryViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         loadCategories()
+        tableView.rowHeight = 80
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -26,8 +28,8 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "categoryCell", for: indexPath)
-        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "categoryCell", for: indexPath) as! SwipeTableViewCell
+        cell.delegate = self
         let category = categories?[indexPath.row]
         
         cell.textLabel?.text = category?.name ?? "No Categories Added Yet"
@@ -59,6 +61,7 @@ class CategoryViewController: UITableViewController {
             
             let newCategory = TodoCategory()
             newCategory.name = textField.text!
+            newCategory.dateCreated = Date()
 //            self.categories.append(newCategory)
             self.saveCategory(category: newCategory)
         }
@@ -89,4 +92,73 @@ class CategoryViewController: UITableViewController {
        
         tableView.reloadData()
     }
+}
+
+//MARK - SWipe Cell delegate Methods
+extension CategoryViewController: SwipeTableViewCellDelegate{
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
+        
+        guard orientation == .right else{ return nil }
+        
+        let editAction = SwipeAction(style: .default, title: "Rename") { (action, indexPath) in
+     
+            var textfield = UITextField()
+            let rename = UIAlertController(title: "Rename Category", message: "", preferredStyle: .alert)
+            
+            let renameAction = UIAlertAction(title: "Save", style: .default, handler: { (action) in
+                
+                if let category = self.categories?[indexPath.row]{
+                    do{
+                        try self.realm.write {
+                            category.name = textfield.text!
+                        }
+                    }catch{
+                        print("Error renaming item, \(error)")
+                    }
+                }
+                
+                tableView.reloadData()
+
+            })
+            
+            rename.addTextField(configurationHandler: { (field) in
+                field.placeholder = "Enter new name"
+                textfield = field
+            })
+            
+            rename.addAction(renameAction)
+            self.present(rename, animated: true, completion: nil)
+            
+        }
+        
+        
+        let deleteAction = SwipeAction(style: .destructive, title: "Delete") { (action, indexPath) in
+            
+            if let category = self.categories?[indexPath.row]{
+                do{
+                    try self.realm.write {
+                        self.realm.delete(category.items)
+                        self.realm.delete(category)
+                    }
+                    
+                }catch{
+                    print("\(error)")
+                }
+//                tableView.reloadData()
+            }
+            
+        }
+        
+        deleteAction.image = UIImage(named: "deleteIcon")
+        return [deleteAction, editAction]
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
+        var options = SwipeOptions()
+        options.expansionStyle = .destructive
+        options.transitionStyle = .border
+        return options
+    }
+    
+    
 }
