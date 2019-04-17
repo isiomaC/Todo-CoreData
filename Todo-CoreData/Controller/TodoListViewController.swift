@@ -68,8 +68,9 @@ class TodoListViewController: UITableViewController {
             let rename = UIAlertController(title: "Rename TODO Item", message: "", preferredStyle: .alert)
             
             let renameAction = UIAlertAction(title: "Save", style: .default, handler: { (action) in
-                
+                print(self.itemArray[indexPath.row])
                 self.itemArray[indexPath.row].setValue(textfield.text, forKey: "title")
+                print(self.itemArray[indexPath.row])
                 self.saveItems()
             })
             
