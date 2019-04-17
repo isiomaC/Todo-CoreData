@@ -12,5 +12,6 @@ import RealmSwift
 class TodoCategory: Object{
  
     @objc dynamic var name: String = ""
+    @objc dynamic var dateCreated: Date? = nil
     let items = List<TodoItem>()
 }

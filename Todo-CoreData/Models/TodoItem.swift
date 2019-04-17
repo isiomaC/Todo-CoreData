@@ -13,4 +13,5 @@ class TodoItem: Object{
     @objc dynamic var title: String = ""
     @objc dynamic var done: Bool = false
     var parentCategory = LinkingObjects(fromType: TodoCategory.self, property: "items")
+    @objc dynamic var dateCreated: Date? = nil
 }
